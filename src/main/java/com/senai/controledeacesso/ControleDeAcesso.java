@@ -3,6 +3,7 @@ package com.senai.controledeacesso;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -13,11 +14,13 @@ public class ControleDeAcesso {
     // Caminho para a pasta ControleDeAcesso no diretório do usuário
     private static final File pastaControleDeAcesso = new File(System.getProperty("user.home"), "ControleDeAcesso");
 
+
     // Caminho para o arquivo bancoDeDados.txt e para a pasta imagens
     private static final File arquivoBancoDeDados = new File(pastaControleDeAcesso, "bancoDeDados.txt");
     private static final File arquivoRegistroDeAcesso = new File(pastaControleDeAcesso, "RegistrosDeAcesso.txt");
     public static final File pastaImagens = new File(pastaControleDeAcesso, "imagens");
 
+    static ArrayList<RegistroDeAcesso>registroDeAcessos=new ArrayList<>();
     static String[] cabecalho = {"ID", "IdAcesso", "Nome", "Telefone", "Email", "Imagem"};
     static String[][] matrizCadastro = {{"", ""}};
     public static String[][] matrizRegistrosDeAcesso = {{"", "", ""}};// inicia a matriz com uma linha e duas colunas com "" para que na primeira vez não apareça null na tabela de registros
