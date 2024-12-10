@@ -15,6 +15,7 @@ public class ControleDeAcesso {
 
     // Caminho para o arquivo bancoDeDados.txt e para a pasta imagens
     private static final File arquivoBancoDeDados = new File(pastaControleDeAcesso, "bancoDeDados.txt");
+    private static final File arquivoRegistroDeAcesso = new File(pastaControleDeAcesso, "RegistrosDeAcesso.txt");
     public static final File pastaImagens = new File(pastaControleDeAcesso, "imagens");
 
     static String[] cabecalho = {"ID", "IdAcesso", "Nome", "Telefone", "Email", "Imagem"};
@@ -37,6 +38,7 @@ public class ControleDeAcesso {
     public static void main(String[] args) {
         verificarEstruturaDeDiretorios();
         carregarDadosDoArquivo();
+        carregarDadosDoArquivoRegistroDeAcesso();
         conexaoMQTT = new CLienteMQTT(brokerUrl, topico, ControleDeAcesso::processarMensagemMQTTRecebida);
         servidorHTTPS = new ServidorHTTPS(); // Inicia o servidor HTTPS
         menuPrincipal();
@@ -59,8 +61,9 @@ public class ControleDeAcesso {
                     |       2- Inserir novo cadastro                        |
                     |       3- Atualizar cadastro por id                    |
                     |       4- Deletar um cadastro por id                   |
-                    |       5- Associar TAG ou cartão de acesso ao usuário  |
-                    |       6- Sair                                         |
+                    |       5- Exibir horários de acesso                    |
+                    |       6- Associar TAG ou cartão de acesso ao usuário  |
+                    |       7- Sair                                         |
                     _________________________________________________________
                     """;
             System.out.println(menu);
@@ -81,16 +84,19 @@ public class ControleDeAcesso {
                     deletarUsuario();
                     break;
                 case 5:
-                    aguardarCadastroDeIdAcesso();
+                    exibirAcesso();
                     break;
                 case 6:
+                    aguardarCadastroDeIdAcesso();
+                    break;
+                case 7:
                     System.out.println("Fim do programa!");
                     break;
                 default:
                     System.out.println("Opção inválida!");
             }
 
-        } while (opcao != 6);
+        } while (opcao != 7);
     }
 
     private static void aguardarCadastroDeIdAcesso() {
@@ -152,6 +158,7 @@ public class ControleDeAcesso {
                         novaMatrizRegistro[linhaNovoRegistro][1]);
                 usuarioEncontrado = true; // Marca que o usuário foi encontrado
                 matrizRegistrosDeAcesso = novaMatrizRegistro;
+                salvarDadosDeAcessoNoArquivo();
                 break; // Sai do loop, pois já encontrou o usuário
             }
         }
@@ -209,6 +216,36 @@ public class ControleDeAcesso {
         }
         System.out.println(tabelaCadastro);
     }
+
+    private static void exibirAcesso() {
+
+        StringBuilder tabelaAcesso = new StringBuilder();
+
+        String nome = "";
+
+        exibirCadastro();
+
+        System.out.println("Qua o id do usuário que você deseja ver o histórico de acesso");
+
+        int idDoUsuario = scanner.nextInt();
+
+        for (int row = 1; row < matrizCadastro.length; row++) {
+            for (int column = 0; column < cabecalho.length; column++) {
+                if (row == idDoUsuario) {
+                    nome = matrizCadastro[row][2];
+                    break;
+                }
+            }
+        }
+
+        for (String[] usuarioLinha : matrizRegistrosDeAcesso) {
+            if (usuarioLinha[0].equals(nome)) {
+                tabelaAcesso.append(String.join( ",", usuarioLinha)).append("\n");
+            }
+        }
+        System.out.println(tabelaAcesso);
+    }
+
 
     private static void cadastrarUsuario() {
         System.out.print("Digite a quantidade de usuarios que deseja cadastrar:");
@@ -310,6 +347,42 @@ public class ControleDeAcesso {
         matrizCadastro[0] = cabecalho;
     }
 
+    public static void carregarDadosDoArquivoRegistroDeAcesso(){
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(arquivoRegistroDeAcesso))) {
+            String linha;
+            StringBuilder conteudo = new StringBuilder();
+
+            while ((linha = reader.readLine()) != null) {
+                if (!linha.trim().isEmpty()) {
+                    conteudo.append(linha).append("\n");
+                }
+            }
+
+            if (!conteudo.toString().trim().isEmpty()) {
+                String[] linhasDaTabela = conteudo.toString().split("\n");
+                matrizRegistrosDeAcesso = new String[linhasDaTabela.length][2];
+                for (int i = 0; i < linhasDaTabela.length; i++) {
+                    matrizRegistrosDeAcesso[i] = linhasDaTabela[i].split(",");
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void salvarDadosDeAcessoNoArquivo(){
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoRegistroDeAcesso))){
+            for (String[] linha : matrizRegistrosDeAcesso){
+                writer.write(String.join(",", linha) + "\n");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public static void salvarDadosNoArquivo() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoBancoDeDados))) {
             for (String[] linha : matrizCadastro) {
@@ -340,6 +413,18 @@ public class ControleDeAcesso {
                 }
             } catch (IOException e) {
                 System.out.println("Erro ao criar arquivo bancoDeDados.txt: " + e.getMessage());
+            }
+        }
+
+        if (!arquivoRegistroDeAcesso.exists()){
+            try {
+                if (arquivoRegistroDeAcesso.createNewFile()){
+                    System.out.println("Arquivo RegistrosDeAcesso.txt criado com sucesso.");
+                }else {
+                    System.out.println("Falha ao criar o arquivo bancoDeDados.txt.");
+                }
+            } catch (IOException e) {
+                System.out.println("Erro ao criar arquivo RegistrosDeAcesso.txt: " + e.getMessage());
             }
         }
 
