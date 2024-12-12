@@ -208,45 +208,52 @@ public class ControleDeAcesso {
 
     // Funções de CRUD
     private static void exibirCadastro() {
-        StringBuilder tabelaCadastro = new StringBuilder();
+//        StringBuilder tabelaCadastro = new StringBuilder();
 
-        for (String[] usuarioLinha : matrizCadastro) {
-            for (int colunas = 0; colunas < matrizCadastro[0].length; colunas++) {
-                int largura = colunas < 2 ? (colunas == 0 ? 4 : 8) : 25;
-                tabelaCadastro.append(String.format("%-" + largura + "s | ", usuarioLinha[colunas]));
-            }
-            tabelaCadastro.append("\n");
+//        for (String[] usuarioLinha : matrizCadastro) {
+//            for (int colunas = 0; colunas < matrizCadastro[0].length; colunas++) {
+//                int largura = colunas < 2 ? (colunas == 0 ? 4 : 8) : 25;
+//                tabelaCadastro.append(String.format("%-" + largura + "s | ", usuarioLinha[colunas]));
+//            }
+//            tabelaCadastro.append("\n");
+//        }
+//        System.out.println(tabelaCadastro);
+        System.out.println("ID | Id Acesso | Nome | Telefone | Email");
+        for (Usuario usuario : listaDeUsuarios) {
+            System.out.println(usuario.toString());
         }
-        System.out.println(tabelaCadastro);
     }
 
     private static void exibirAcesso() {
 
-        StringBuilder tabelaAcesso = new StringBuilder();
+        //StringBuilder tabelaAcesso = new StringBuilder();
 
-        String nome = "";
+        //String nome = "";
 
         exibirCadastro();
 
-        System.out.println("Qua o id do usuário que você deseja ver o histórico de acesso");
+        System.out.println("\nQual o ID do usuário que você deseja ver o histórico de acesso?: ");
 
         int idDoUsuario = scanner.nextInt();
 
-        for (int row = 1; row < matrizCadastro.length; row++) {
-            for (int column = 0; column < cabecalho.length; column++) {
-                if (row == idDoUsuario) {
-                    nome = matrizCadastro[row][2];
-                    break;
-                }
-            }
-        }
+        //for (int row = 1; row < matrizCadastro.length; row++) {
+        //    for (int column = 0; column < cabecalho.length; column++) {
+        //        if (row == idDoUsuario) {
+        //            nome = matrizCadastro[row][2];
+        //            break;
+        //        }
+        //    }
+        //}
 
-        for (String[] usuarioLinha : matrizRegistrosDeAcesso) {
-            if (usuarioLinha[0].equals(nome)) {
-                tabelaAcesso.append(String.join(",", usuarioLinha)).append("\n");
-            }
-        }
-        System.out.println(tabelaAcesso);
+        System.out.println(listaDeUsuarios.get(listaDeUsuarios.indexOf(idDoUsuario+1)));
+
+        //for (String[] usuarioLinha : matrizRegistrosDeAcesso) {
+        //    if (usuarioLinha[0].equals(nome)) {
+        //        tabelaAcesso.append(String.join(",", usuarioLinha)).append("\n");
+        //    }
+        //}
+        //System.out.println(tabelaAcesso);
+
     }
 
 
