@@ -20,7 +20,7 @@ public class ControleDeAcesso {
     private static final File arquivoRegistroDeAcesso = new File(pastaControleDeAcesso, "RegistrosDeAcesso.txt");
     public static final File pastaImagens = new File(pastaControleDeAcesso, "imagens");
 
-    static ArrayList<RegistroDeAcesso>registroDeAcessos=new ArrayList<>();
+    static ArrayList<Usuario> listaDeUsuarios = new ArrayList<>();
     static String[] cabecalho = {"ID", "IdAcesso", "Nome", "Telefone", "Email", "Imagem"};
     static String[][] matrizCadastro = {{"", ""}};
     public static String[][] matrizRegistrosDeAcesso = {{"", "", ""}};// inicia a matriz com uma linha e duas colunas com "" para que na primeira vez não apareça null na tabela de registros
@@ -243,7 +243,7 @@ public class ControleDeAcesso {
 
         for (String[] usuarioLinha : matrizRegistrosDeAcesso) {
             if (usuarioLinha[0].equals(nome)) {
-                tabelaAcesso.append(String.join( ",", usuarioLinha)).append("\n");
+                tabelaAcesso.append(String.join(",", usuarioLinha)).append("\n");
             }
         }
         System.out.println(tabelaAcesso);
@@ -255,27 +255,27 @@ public class ControleDeAcesso {
         int qtdUsuarios = scanner.nextInt();
         scanner.nextLine();
 
-        String[][] novaMatriz = new String[matrizCadastro.length + qtdUsuarios][matrizCadastro[0].length];
+        /*/String[][] novaMatriz = new String[matrizCadastro.length + qtdUsuarios][matrizCadastro[0].length];
 
         for (int linhas = 0; linhas < matrizCadastro.length; linhas++) {
             novaMatriz[linhas] = Arrays.copyOf(matrizCadastro[linhas], matrizCadastro[linhas].length);
-        }
-
+        }/*/
         System.out.println("\nPreencha os dados a seguir:");
-        for (int linhas = matrizCadastro.length; linhas < novaMatriz.length; linhas++) {
-            System.out.println(matrizCadastro[0][0] + "- " + linhas);
-            novaMatriz[linhas][0] = String.valueOf(linhas);// preenche o campo id com o numero gerado pelo for
-            novaMatriz[linhas][1] = "-"; //preenche o campo idCadastro com "-"
+        for (int linhas = 3; linhas < cabecalho.length; linhas++) {
+            Usuario usuario = new Usuario();
+            System.out.println("Digite o " + cabecalho[linhas]);
+            usuario.setNome(scanner.nextLine());
+            linhas++;
+            System.out.println("Digite o " + cabecalho[linhas]);
+            usuario.setTelefone(scanner.nextLine());
+            linhas++;
+            System.out.println("Digite o " + cabecalho[linhas]);
+            usuario.setEmail(scanner.nextLine());
 
-            for (int colunas = 2; colunas < matrizCadastro[0].length - 1; colunas++) {
-                System.out.print(matrizCadastro[0][colunas] + ": ");
-                novaMatriz[linhas][colunas] = scanner.nextLine();
-            }
-            novaMatriz[linhas][matrizCadastro[0].length - 1] = "-";//preenche o campo imagem com "-"
-
-            System.out.println("-----------------------Inserido com sucesso------------------------\n");
+            listaDeUsuarios.add(usuario);
         }
-        matrizCadastro = novaMatriz;
+        System.out.println("-----------------------Inserido com sucesso------------------------\n");
+
         salvarDadosNoArquivo();
     }
 
@@ -312,12 +312,12 @@ public class ControleDeAcesso {
             if (i == idUsuario)
                 continue;
             novaMatriz[j] = matrizCadastro[i];
-            novaMatriz[j][0]= String.valueOf(j);
+            novaMatriz[j][0] = String.valueOf(j);
             j++;
         }
 
         matrizCadastro = novaMatriz;
-        matrizCadastro[0]=cabecalho;
+        matrizCadastro[0] = cabecalho;
         salvarDadosNoArquivo();
         System.out.println("-----------------------Deletado com sucesso------------------------\n");
         idUsuarioRecebidoPorHTTP = 0;
@@ -350,7 +350,7 @@ public class ControleDeAcesso {
         matrizCadastro[0] = cabecalho;
     }
 
-    public static void carregarDadosDoArquivoRegistroDeAcesso(){
+    public static void carregarDadosDoArquivoRegistroDeAcesso() {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(arquivoRegistroDeAcesso))) {
             String linha;
@@ -375,9 +375,9 @@ public class ControleDeAcesso {
         }
     }
 
-    private static void salvarDadosDeAcessoNoArquivo(){
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoRegistroDeAcesso))){
-            for (String[] linha : matrizRegistrosDeAcesso){
+    private static void salvarDadosDeAcessoNoArquivo() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoRegistroDeAcesso))) {
+            for (String[] linha : matrizRegistrosDeAcesso) {
                 writer.write(String.join(",", linha) + "\n");
             }
         } catch (Exception e) {
@@ -419,11 +419,11 @@ public class ControleDeAcesso {
             }
         }
 
-        if (!arquivoRegistroDeAcesso.exists()){
+        if (!arquivoRegistroDeAcesso.exists()) {
             try {
-                if (arquivoRegistroDeAcesso.createNewFile()){
+                if (arquivoRegistroDeAcesso.createNewFile()) {
                     System.out.println("Arquivo RegistrosDeAcesso.txt criado com sucesso.");
-                }else {
+                } else {
                     System.out.println("Falha ao criar o arquivo bancoDeDados.txt.");
                 }
             } catch (IOException e) {

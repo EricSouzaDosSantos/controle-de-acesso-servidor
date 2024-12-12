@@ -2,7 +2,7 @@ package com.senai.controledeacesso;
 
 import java.util.UUID;
 
-public class RegistroDeAcesso {
+public class Usuario {
     private long id;
     private UUID idAcesso;
     private String nome;
