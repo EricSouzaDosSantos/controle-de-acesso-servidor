@@ -245,7 +245,7 @@ public class ControleDeAcesso {
         //    }
         //}
 
-        System.out.println(listaDeUsuarios.get(listaDeUsuarios.indexOf(idDoUsuario)));
+        System.out.println(listaDeUsuarios.get(listaDeUsuarios.indexOf(idDoUsuario+1)));
 
         //for (String[] usuarioLinha : matrizRegistrosDeAcesso) {
         //    if (usuarioLinha[0].equals(nome)) {
