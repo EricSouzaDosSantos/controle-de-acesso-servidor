@@ -299,7 +299,7 @@ public class ControleDeAcesso {
     }
 
     public static void deletarUsuario() {
-        String[][] novaMatriz = new String[matrizCadastro.length - 1][matrizCadastro[0].length];
+
         int idUsuario = idUsuarioRecebidoPorHTTP;
         if (idUsuarioRecebidoPorHTTP == 0) {
             exibirCadastro();
@@ -308,16 +308,7 @@ public class ControleDeAcesso {
             scanner.nextLine();
         }
 
-        for (int i = 1, j = 1; i < matrizCadastro.length; i++) {
-            if (i == idUsuario)
-                continue;
-            novaMatriz[j] = matrizCadastro[i];
-            novaMatriz[j][0] = String.valueOf(j);
-            j++;
-        }
-
-        matrizCadastro = novaMatriz;
-        matrizCadastro[0] = cabecalho;
+        listaDeUsuarios.remove(idUsuario);
         salvarDadosNoArquivo();
         System.out.println("-----------------------Deletado com sucesso------------------------\n");
         idUsuarioRecebidoPorHTTP = 0;
