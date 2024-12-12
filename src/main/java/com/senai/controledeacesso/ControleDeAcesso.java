@@ -258,30 +258,30 @@ public class ControleDeAcesso {
 
 
     private static void cadastrarUsuario() {
+
         System.out.print("Digite a quantidade de usuarios que deseja cadastrar:");
         int qtdUsuarios = scanner.nextInt();
         scanner.nextLine();
 
-        /*/String[][] novaMatriz = new String[matrizCadastro.length + qtdUsuarios][matrizCadastro[0].length];
-
-        for (int linhas = 0; linhas < matrizCadastro.length; linhas++) {
-            novaMatriz[linhas] = Arrays.copyOf(matrizCadastro[linhas], matrizCadastro[linhas].length);
-        }/*/
         System.out.println("\nPreencha os dados a seguir:");
-        for (int linhas = 3; linhas < cabecalho.length; linhas++) {
-            Usuario usuario = new Usuario();
-            System.out.println("Digite o " + cabecalho[linhas]);
-            usuario.setNome(scanner.nextLine());
-            linhas++;
-            System.out.println("Digite o " + cabecalho[linhas]);
-            usuario.setTelefone(scanner.nextLine());
-            linhas++;
-            System.out.println("Digite o " + cabecalho[linhas]);
-            usuario.setEmail(scanner.nextLine());
-
-            listaDeUsuarios.add(usuario);
+        for (int vezes = 0; vezes < qtdUsuarios; vezes++) {
+            for (int linhas = 2; linhas < cabecalho.length; linhas++) {
+                Usuario usuario = new Usuario();
+                usuario.setId(listaDeUsuarios.size());
+                System.out.println("Digite o " + cabecalho[linhas]);
+                usuario.setNome(scanner.nextLine());
+                linhas++;
+                System.out.println("Digite o " + cabecalho[linhas]);
+                usuario.setTelefone(scanner.nextLine());
+                linhas++;
+                System.out.println("Digite o " + cabecalho[linhas]);
+                usuario.setEmail(scanner.nextLine());
+                linhas++;
+                listaDeUsuarios.add(usuario);
+                System.out.println("-----------------------Inserido com sucesso------------------------\n");
+            }
         }
-        System.out.println("-----------------------Inserido com sucesso------------------------\n");
+
 
         salvarDadosNoArquivo();
     }
@@ -395,9 +395,11 @@ public class ControleDeAcesso {
 
     public static void salvarDadosNoArquivo() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoBancoDeDados))) {
-            for (String[] linha : matrizCadastro) {
-                writer.write(String.join(",", linha) + "\n");
-            }
+              for (Usuario usuario: listaDeUsuarios){
+                  writer.write(usuario.toString()+"\n");
+
+              }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
