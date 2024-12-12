@@ -51,13 +51,11 @@ public class Usuario {
 
     @Override
     public String toString() {
-        return "Usuario{" +
-                "id" + id +
-                ", idAcesso=" + idAcesso +
-                ", nome='" + nome + '\'' +
-                ", telefone='" + telefone + '\'' +
-                ", email='" + email + '\'' +
-                '}';
+        return
+                id + "    " + idAcesso +
+                "     " + nome +
+                "   " + telefone  +
+                "  " + email;
     }
 }
 
