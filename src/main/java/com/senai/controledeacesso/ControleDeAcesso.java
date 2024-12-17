@@ -321,30 +321,39 @@ public class ControleDeAcesso {
     }
 
     private static void carregarDadosDoArquivo() {
-
         try (BufferedReader reader = new BufferedReader(new FileReader(arquivoBancoDeDados))) {
             String linha;
-            StringBuilder conteudo = new StringBuilder();
 
+            // Percorrendo as linhas do arquivo
             while ((linha = reader.readLine()) != null) {
+                // Ignorando linhas em branco
                 if (!linha.trim().isEmpty()) {
-                    conteudo.append(linha).append("\n");
+                    // Separando os dados da linha
+                    String[] dados = linha.split("\\s+");
+
+                    // Criando um novo objeto Usuario
+                    Usuario usuario = new Usuario();
+
+                    // Definindo os dados no objeto Usuario
+                    usuario.setId(Long.parseLong(dados[0]));
+                    if (dados[1] == null || dados[1].equals("null")) {
+                        usuario.setIdAcesso(null);
+                    } else {
+                        usuario.setIdAcesso(UUID.fromString(dados[1]));
+                    }
+                    usuario.setNome(dados[2]);
+                    usuario.setTelefone(dados[3]);
+                    usuario.setEmail(dados[4]);
+
+                    // Adicionando o usuário à lista
+                    listaDeUsuarios.add(usuario);
                 }
             }
-
-            if (!conteudo.toString().trim().isEmpty()) {
-                String[] linhasDaTabela = conteudo.toString().split("\n");
-                matrizCadastro = new String[linhasDaTabela.length][cabecalho.length];
-                for (int i = 0; i < linhasDaTabela.length; i++) {
-                    matrizCadastro[i] = linhasDaTabela[i].split(",");
-                }
-            }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        matrizCadastro[0] = cabecalho;
     }
+
 
     public static void carregarDadosDoArquivoRegistroDeAcesso() {
 
