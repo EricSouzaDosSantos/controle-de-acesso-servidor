@@ -391,60 +391,60 @@ public class ControleDeAcesso {
     }
 
 
-    public static void salvarDadosNoArquivo() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoBancoDeDados))) {
-              for (Usuario usuario: listaDeUsuarios){
-                  writer.write(usuario.toString()+"\n");
+//    public static void salvarDadosNoArquivo() {
+//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoBancoDeDados))) {
+//              for (Usuario usuario: listaDeUsuarios){
+//                  writer.write(usuario.toString()+"\n");
+//
+//              }
+//
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
-              }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void verificarEstruturaDeDiretorios() {
-        // Verifica se a pasta ControleDeAcesso existe, caso contrário, cria
-        if (!pastaControleDeAcesso.exists()) {
-            if (pastaControleDeAcesso.mkdir()) {
-                System.out.println("Pasta ControleDeAcesso criada com sucesso.");
-            } else {
-                System.out.println("Falha ao criar a pasta ControleDeAcesso.");
-            }
-        }
-
-        // Verifica se o arquivo bancoDeDados.txt existe, caso contrário, cria
-        if (!arquivoBancoDeDados.exists()) {
-            try {
-                if (arquivoBancoDeDados.createNewFile()) {
-                    System.out.println("Arquivo bancoDeDados.txt criado com sucesso.");
-                } else {
-                    System.out.println("Falha ao criar o arquivo bancoDeDados.txt.");
-                }
-            } catch (IOException e) {
-                System.out.println("Erro ao criar arquivo bancoDeDados.txt: " + e.getMessage());
-            }
-        }
-
-        if (!arquivoRegistroDeAcesso.exists()) {
-            try {
-                if (arquivoRegistroDeAcesso.createNewFile()) {
-                    System.out.println("Arquivo RegistrosDeAcesso.txt criado com sucesso.");
-                } else {
-                    System.out.println("Falha ao criar o arquivo bancoDeDados.txt.");
-                }
-            } catch (IOException e) {
-                System.out.println("Erro ao criar arquivo RegistrosDeAcesso.txt: " + e.getMessage());
-            }
-        }
-
-        // Verifica se a pasta imagens existe, caso contrário, cria
-        if (!pastaImagens.exists()) {
-            if (pastaImagens.mkdir()) {
-                System.out.println("Pasta imagens criada com sucesso.");
-            } else {
-                System.out.println("Falha ao criar a pasta imagens.");
-            }
-        }
-    }
+//    private static void verificarEstruturaDeDiretorios() {
+//        // Verifica se a pasta ControleDeAcesso existe, caso contrário, cria
+//        if (!pastaControleDeAcesso.exists()) {
+//            if (pastaControleDeAcesso.mkdir()) {
+//                System.out.println("Pasta ControleDeAcesso criada com sucesso.");
+//            } else {
+//                System.out.println("Falha ao criar a pasta ControleDeAcesso.");
+//            }
+//        }
+//
+//        // Verifica se o arquivo bancoDeDados.txt existe, caso contrário, cria
+//        if (!arquivoBancoDeDados.exists()) {
+//            try {
+//                if (arquivoBancoDeDados.createNewFile()) {
+//                    System.out.println("Arquivo bancoDeDados.txt criado com sucesso.");
+//                } else {
+//                    System.out.println("Falha ao criar o arquivo bancoDeDados.txt.");
+//                }
+//            } catch (IOException e) {
+//                System.out.println("Erro ao criar arquivo bancoDeDados.txt: " + e.getMessage());
+//            }
+//        }
+//
+//        if (!arquivoRegistroDeAcesso.exists()) {
+//            try {
+//                if (arquivoRegistroDeAcesso.createNewFile()) {
+//                    System.out.println("Arquivo RegistrosDeAcesso.txt criado com sucesso.");
+//                } else {
+//                    System.out.println("Falha ao criar o arquivo bancoDeDados.txt.");
+//                }
+//            } catch (IOException e) {
+//                System.out.println("Erro ao criar arquivo RegistrosDeAcesso.txt: " + e.getMessage());
+//            }
+//        }
+//
+//        // Verifica se a pasta imagens existe, caso contrário, cria
+//        if (!pastaImagens.exists()) {
+//            if (pastaImagens.mkdir()) {
+//                System.out.println("Pasta imagens criada com sucesso.");
+//            } else {
+//                System.out.println("Falha ao criar a pasta imagens.");
+//            }
+//        }
+//    }
 }
