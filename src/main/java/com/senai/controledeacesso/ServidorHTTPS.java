@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class ServidorHTTPS {
@@ -256,6 +257,7 @@ public class ServidorHTTPS {
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 StringBuilder corpoDaRequisicao = new StringBuilder();
                 String linha;
+                GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
                 while ((linha = bufferedReader.readLine()) != null) {
                     corpoDaRequisicao.append(linha);
                 }
@@ -286,7 +288,8 @@ public class ServidorHTTPS {
 
                 novaMatriz[novoID] = novoUsuario;
                 ControleDeAcesso.matrizCadastro = novaMatriz;
-                ControleDeAcesso.salvarDadosNoArquivo();
+                Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
+//                ControleDeAcesso.salvarDadosNoArquivo();
 
                 String responseMessage = "Cadastro recebido com sucesso!";
                 exchange.sendResponseHeaders(200, responseMessage.length());
@@ -307,6 +310,7 @@ public class ServidorHTTPS {
                 exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8));
                 StringBuilder corpoDaRequisicao = new StringBuilder();
+                GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
                 String linha;
                 while ((linha = bufferedReader.readLine()) != null) {
                     corpoDaRequisicao.append(linha);
@@ -345,7 +349,7 @@ public class ServidorHTTPS {
                     // Substitui o cadastro na matriz com os novos dados
                     ControleDeAcesso.matrizCadastro[id] = registro;
 
-                    ControleDeAcesso.salvarDadosNoArquivo();
+                    Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
 
                     // Resposta de sucesso
                     String response = "{\"status\":\"Cadastro atualizado com sucesso.\"}";
@@ -381,6 +385,7 @@ public class ServidorHTTPS {
         public void handle(HttpExchange exchange) throws IOException {
             System.out.println("Iniciando processamento no DeleteCadastroHandler");
 
+            Scanner scanner = new Scanner(System.in);
             if ("DELETE".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
                 System.out.println("Método DELETE confirmado e CORS habilitado.");
@@ -397,7 +402,7 @@ public class ServidorHTTPS {
 
                     if (id > 0 && id < ControleDeAcesso.matrizCadastro.length && ControleDeAcesso.matrizCadastro[id] != null) {
                         ControleDeAcesso.idUsuarioRecebidoPorHTTP = id;
-                        ControleDeAcesso.deletarUsuario();
+                        Usuario.deletarUsuario(scanner);
 
                         response = "{\"status\":\"Cadastro deletado com sucesso.\"}";
                         statusCode = 200;

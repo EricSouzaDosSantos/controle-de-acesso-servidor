@@ -11,6 +11,8 @@ public class Usuario {
     private String telefone;
     private String email;
 
+    public Usuario() {}
+
     public Usuario(long id, UUID idAcesso, String nome, String telefone, String email) {
         this.id = id;
         this.idAcesso = idAcesso;
@@ -21,6 +23,10 @@ public class Usuario {
 
     public long getId() {
         return id;
+    }
+
+    public static List<Usuario> getListaUsuarios() {
+        return usuarios;
     }
 
     public void setId(long id) {
@@ -79,6 +85,26 @@ public class Usuario {
             throw new RuntimeException("Erro ao carregar usuários", e);
         }
     }
+
+
+
+    public static void inserirUsuariosNoArquivo(File arquivo) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo, true))) {
+            for (Usuario usuario : usuarios) {
+                String linha = usuario.getId() + " " +
+                        (usuario.getIdAcesso() == null ? "null" : usuario.getIdAcesso().toString()) + " " +
+                        usuario.getNome() + " " +
+                        usuario.getTelefone() + " " +
+                        usuario.getEmail();
+                writer.write(linha);
+                writer.newLine();
+            }
+            System.out.println("Usuários salvos no arquivo com sucesso.");
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao salvar usuários no arquivo", e);
+        }
+    }
+
 
     public static void exibirUsuarios() {
         System.out.println("ID | Id Acesso | Nome | Telefone | Email");
