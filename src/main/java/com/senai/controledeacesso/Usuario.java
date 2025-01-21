@@ -65,6 +65,7 @@ public class Usuario {
         this.email = email;
     }
 
+
     public static void carregarUsuarios(File arquivo) {
         try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
             String linha;
@@ -114,6 +115,8 @@ public class Usuario {
     }
 
     public static void cadastrarUsuario(Scanner scanner) {
+        GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
+
         System.out.print("Digite o nome: ");
         String nome = scanner.nextLine();
         System.out.print("Digite o telefone: ");
@@ -123,6 +126,7 @@ public class Usuario {
 
         Usuario usuario = new Usuario((long) (usuarios.size() + 1), null, nome, telefone, email);
         usuarios.add(usuario);
+        inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
 
         System.out.println("Usuário cadastrado com sucesso: " + usuario);
     }
@@ -136,6 +140,7 @@ public class Usuario {
 
 
     public static void atualizarUsuario(Scanner scanner) {
+        GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
         exibirUsuarios();
         System.out.print("Digite o ID do usuário a ser atualizado: ");
         long id = scanner.nextLong();
@@ -152,12 +157,15 @@ public class Usuario {
             usuario.setEmail(scanner.nextLine());
 
             System.out.println("Usuário atualizado com sucesso: " + usuario);
+            inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
         } else {
             System.out.println("Usuário não encontrado.");
         }
     }
 
     public static void deletarUsuario(Scanner scanner) {
+        GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
+
         exibirUsuarios();
         System.out.print("Digit o ID do usuário a ser deletado: ");
         long id = scanner.nextLong();
@@ -167,6 +175,7 @@ public class Usuario {
 
         if (usuarios.remove(usuario)) {
             System.out.println("Usuário deletado com sucesso.");
+            inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
         } else {
             System.out.println("Usuário não encontrado.");
         }

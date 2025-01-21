@@ -126,43 +126,6 @@ public class ControleDeAcesso {
         }
     }
 
-    // Função que busca e atualiza a tabela com o ID recebido
-//    private static void criarNovoRegistroDeAcesso(String idAcessoRecebido) {
-//        boolean usuarioEncontrado = false; // Variável para verificar se o usuário foi encontrado
-//        String[][] novaMatrizRegistro = new String[matrizRegistrosDeAcesso.length][matrizRegistrosDeAcesso[0].length];
-//        int linhaNovoRegistro = 0;
-//
-//        if (!matrizRegistrosDeAcesso[0][0].isEmpty()) {//testa se o valor da primeira posição da matriz está diferente de vazia ou "".
-//            novaMatrizRegistro = new String[matrizRegistrosDeAcesso.length + 1][matrizRegistrosDeAcesso[0].length];
-//            linhaNovoRegistro = matrizRegistrosDeAcesso.length;
-//            for (int linhas = 0; linhas < matrizRegistrosDeAcesso.length; linhas++) {
-//                novaMatrizRegistro[linhas] = Arrays.copyOf(matrizRegistrosDeAcesso[linhas], matrizRegistrosDeAcesso[linhas].length);
-//            }
-//        }
-//        // Loop para percorrer a matriz e buscar o idAcesso
-//        for (int linhas = 1; linhas < matrizCadastro.length; linhas++) { // Começa de 1 para ignorar o cabeçalho
-//            String idAcessoNaMatriz = matrizCadastro[linhas][1]; // A coluna do idAcesso é a segunda coluna (índice 1)
-//
-//            // Verifica se o idAcesso da matriz corresponde ao idAcesso recebido
-//            if (idAcessoNaMatriz.equals(idAcessoRecebido)) {
-//                novaMatrizRegistro[linhaNovoRegistro][0] = matrizCadastro[linhas][2]; // Assume que o nome do usuário está na coluna 3
-//                novaMatrizRegistro[linhaNovoRegistro][1] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-//                novaMatrizRegistro[linhaNovoRegistro][2] = matrizCadastro[linhas][5];
-//                System.out.println("Usuário encontrado: " +
-//                        novaMatrizRegistro[linhaNovoRegistro][0] + " - " +
-//                        novaMatrizRegistro[linhaNovoRegistro][1]);
-//                usuarioEncontrado = true; // Marca que o usuário foi encontrado
-//                matrizRegistrosDeAcesso = novaMatrizRegistro;
-//                salvarDadosDeAcessoNoArquivo();
-//                break; // Sai do loop, pois já encontrou o usuário
-//            }
-//        }
-//        // Se não encontrou o usuário, imprime uma mensagem
-//        if (!usuarioEncontrado) {
-//            System.out.println("Id de Acesso " + idAcessoRecebido + " não cadastrado.");
-//        }
-//    }
-
     private static void cadastrarNovoIdAcesso(String novoIdAcesso) {
         boolean encontrado = false;
         String idUsuarioEscolhido = String.valueOf(idUsuarioRecebidoPorHTTP);
@@ -192,80 +155,9 @@ public class ControleDeAcesso {
                 break;
             }
         }
-//        for (int linhas = 1; linhas < matrizCadastro.length; linhas++) {
-//            if (matrizCadastro[linhas][0].equals(idUsuarioEscolhido)) { // Coluna 0 é o idUsuario
-//                matrizCadastro[linhas][1] = novoIdAcesso; // Atualiza a coluna 1 com o novo idAcesso
-//                System.out.println("id de acesso " + novoIdAcesso + " associado ao usuário " + matrizCadastro[linhas][2]);
-//                conexaoMQTT.publicarMensagem("cadastro/disp", "CadastroConcluido");
-//                encontrado = true;
-//                salvarDadosNoArquivo();
-//                break;
-//            }
-//        }
-
         // Se não encontrou o usuário, imprime uma mensagem
         if (!encontrado) {
             System.out.println("Usuário com id" + idUsuarioEscolhido + " não encontrado.");
         }
     }
-
-//    private static void exibirAcesso() {
-//
-//        StringBuilder tabelaAcesso = new StringBuilder();
-//
-//        System.out.println("\nQual o ID do usuário que você deseja ver o histórico de acesso?: ");
-//
-//        int idDoUsuario = scanner.nextInt();
-//
-//        for(Usuario usuario: listaDeUsuarios){
-//            if (listaDeUsuarios.get(listaDeUsuarios.indexOf(usuario)).getId() == idDoUsuario){
-//                System.out.println(listaDeUsuarios.get(listaDeUsuarios.indexOf(usuario)));
-//                break;
-//            }
-//        }
-//
-//
-////        for (String[] usuarioLinha : matrizRegistrosDeAcesso) {
-////            if (usuarioLinha[0].equals(nome)) {
-////                tabelaAcesso.append(String.join(",", usuarioLinha)).append("\n");
-////            }
-////        }
-////        System.out.println(tabelaAcesso);
-//
-//    }
-//    public static void carregarDadosDoArquivoRegistroDeAcesso() {
-//
-//        try (BufferedReader reader = new BufferedReader(new FileReader(arquivoRegistroDeAcesso))) {
-//            String linha;
-//            StringBuilder conteudo = new StringBuilder();
-//
-//            while ((linha = reader.readLine()) != null) {
-//                if (!linha.trim().isEmpty()) {
-//                    conteudo.append(linha).append("\n");
-//                }
-//            }
-//
-//            if (!conteudo.toString().trim().isEmpty()) {
-//                String[] linhasDaTabela = conteudo.toString().split("\n");
-//                matrizRegistrosDeAcesso = new String[linhasDaTabela.length][2];
-//                for (int i = 0; i < linhasDaTabela.length; i++) {
-//                    matrizRegistrosDeAcesso[i] = linhasDaTabela[i].split(",");
-//                }
-//            }
-//
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-//    private static void salvarDadosDeAcessoNoArquivo() {
-//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoRegistroDeAcesso))) {
-//            for (String[] linha : matrizRegistrosDeAcesso) {
-//                writer.write(String.join(",", linha) + "\n");
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-
 }

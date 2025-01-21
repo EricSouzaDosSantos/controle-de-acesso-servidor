@@ -23,8 +23,15 @@ public class GerenciarArquivo {
         }
         if (!arquivoBancoDeDados.exists()) {
             try {
-                if (!arquivoBancoDeDados.createNewFile() && !arquivoRegistroDeAcesso.createNewFile() && !arquivoImagens.mkdirs()) {
-                    throw new RuntimeException("Erro ao criar bancos de dados");
+                if (!arquivoBancoDeDados.createNewFile()) {
+                    throw new RuntimeException("Erro ao criar banco de dados");
+                }
+                if(!arquivoRegistroDeAcesso.createNewFile()){
+                    throw new RuntimeException("Erro ao criar banco de dados do registro de acesso");
+                }
+                if (!arquivoImagens.mkdirs()){
+                    throw new RuntimeException("Erro ao criar pasta de imagens");
+
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Erro ao criar arquivo bancoDeDados.txt", e);
