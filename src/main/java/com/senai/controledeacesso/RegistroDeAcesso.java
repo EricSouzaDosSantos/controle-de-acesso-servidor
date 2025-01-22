@@ -6,41 +6,41 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 
-public class AcessoDosUsuarios {
+public class RegistroDeAcesso {
 
-    private String nome;
+    private Usuario usuario;
     private LocalDateTime dataHora;
-    private String nomeImagem;
+    private static List<RegistroDeAcesso> listaDeRegistroDeAcesso = new ArrayList<>();
 
-    public AcessoDosUsuarios(String nome, LocalDateTime dataHora, String nomeImagem) {
-        this.nome = nome;
-        this.dataHora = dataHora;
-        this.nomeImagem = nomeImagem;
+    public static List<RegistroDeAcesso> getListaDeRegistroDeAcesso() {
+        return listaDeRegistroDeAcesso;
     }
 
-    public String getNome() {
-        return nome;
+    public RegistroDeAcesso(Usuario usuario, LocalDateTime dataHora) {
+        this.usuario = usuario;
+        this.dataHora = dataHora;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
     }
 
     public LocalDateTime getDataHora() {
         return dataHora;
     }
 
-    public String getNomeImagem() {
-        return nomeImagem;
-    }
-
     @Override
     public String toString() {
         return "AcessoDosUsuarios{" +
-                "nome='" + nome + '\'' +
+                "usuario='" + usuario.getNome() + '\'' +
                 ", dataHora=" + dataHora.format(DateTimeFormatter.ofPattern("HH:mm:ss")) +
-                ", nomeImagem='" + nomeImagem + '\'' +
+                ", nomeImagem='" + usuario.getCaminhoImagem() + '\'' +
                 '}';
     }
 
-    private static List<AcessoDosUsuarios> registrosDeAcesso = new ArrayList<>();
+
 
     public static void criarNovoRegistroDeAcesso(String idAcessoRecebido, List<Usuario> listaDeUsuarios) {
         boolean usuarioEncontrado = false;
@@ -48,12 +48,11 @@ public class AcessoDosUsuarios {
 
         for (Usuario usuario : listaDeUsuarios) {
             if (usuario.getIdAcesso().equals(idAcessoRecebido)) {
-                AcessoDosUsuarios novoAcesso = new AcessoDosUsuarios(
-                        usuario.getNome(),
-                        LocalDateTime.now(),
-                        usuario.getNome()
+                RegistroDeAcesso novoAcesso = new RegistroDeAcesso(
+                        usuario,
+                        LocalDateTime.now()
                 );
-                registrosDeAcesso.add(novoAcesso);
+                listaDeRegistroDeAcesso.add(novoAcesso);
                 System.out.println("Usuário encontrado: " + novoAcesso);
                 salvarDadosDeAcessoNoArquivo(gerenciarArquivo.getArquivoRegistroDeAcesso());
                 usuarioEncontrado = true;
@@ -74,8 +73,8 @@ public class AcessoDosUsuarios {
         String nomeUsuario = scanner.nextLine();
 
 
-        for (AcessoDosUsuarios registro : registrosDeAcesso) {
-            if (registro.getNome().equalsIgnoreCase(nomeUsuario)) {
+        for (RegistroDeAcesso registro : listaDeRegistroDeAcesso) {
+            if (registro.getUsuario().getNome().equalsIgnoreCase(nomeUsuario)) {
                 tabelaAcesso.append(registro).append("\n");
             }
         }
@@ -95,11 +94,17 @@ public class AcessoDosUsuarios {
             while ((linha = reader.readLine()) != null) {
                 if (!linha.trim().isEmpty()) {
                     String[] dados = linha.split(",");
-                    String nome = dados[0];
+                    Usuario usuario = new Usuario(
+                            Long.parseLong(dados[0]),
+                            dados[1].equals("null") ? null : UUID.fromString(dados[1]),
+                            dados[2],
+                            dados[3],
+                            dados[4],
+                            dados[5].equals("null") ? null : dados[5]
+                    );
                     LocalDateTime dataHora = LocalDateTime.parse(dados[1], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                    String nomeImagem = dados[2];
 
-                    registrosDeAcesso.add(new AcessoDosUsuarios(nome, dataHora, nomeImagem));
+                    listaDeRegistroDeAcesso.add(new RegistroDeAcesso(usuario, dataHora));
                 }
             }
         } catch (IOException e) {
@@ -110,11 +115,10 @@ public class AcessoDosUsuarios {
     // Método para salvar os dados no arquivo
     private static void salvarDadosDeAcessoNoArquivo(File arquivoRegistroDeAcesso) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoRegistroDeAcesso))) {
-            for (AcessoDosUsuarios registro : registrosDeAcesso) {
+            for (RegistroDeAcesso registro : listaDeRegistroDeAcesso) {
                 writer.write(String.format("%s,%s,%s\n",
-                        registro.getNome(),
-                        registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                        registro.getNomeImagem()
+                        registro.getUsuario(),
+                        registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                 ));
             }
         } catch (IOException e) {
