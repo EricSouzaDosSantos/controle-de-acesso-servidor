@@ -1,8 +1,6 @@
 package com.senai.controledeacesso;
 
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,7 +31,7 @@ public class ControleDeAcesso {
     public static void main(String[] args) {
         gerenciarArquivo.verificarEstruturaDeDiretorios();
         Usuario.carregarUsuarios(gerenciarArquivo.getArquivoBancoDeDados());
-        AcessoDosUsuarios.carregarDadosDoArquivoRegistroDeAcesso(gerenciarArquivo.getArquivoRegistroDeAcesso());
+        RegistroDeAcesso.carregarDadosDoArquivoRegistroDeAcesso(gerenciarArquivo.getArquivoRegistroDeAcesso());
         conexaoMQTT = new CLienteMQTT(brokerUrl, topico, ControleDeAcesso::processarMensagemMQTTRecebida);
         servidorHTTPS = new ServidorHTTPS(); // Inicia o servidor HTTPS
         menuPrincipal();
@@ -79,7 +77,7 @@ public class ControleDeAcesso {
                     Usuario.deletarUsuario(scanner);
                     break;
                 case 5:
-                    AcessoDosUsuarios.exibirAcesso(scanner);
+                    RegistroDeAcesso.exibirAcesso(scanner);
                     break;
                 case 6:
                     aguardarCadastroDeIdAcesso();
@@ -118,7 +116,7 @@ public class ControleDeAcesso {
 
     private static void processarMensagemMQTTRecebida(String mensagem) {
         if (!modoCadastrarIdAcesso) {
-            executorIdentificarAcessos.submit(() -> AcessoDosUsuarios.criarNovoRegistroDeAcesso(mensagem, Usuario.getListaUsuarios())); // Processa em thread separada
+            executorIdentificarAcessos.submit(() -> RegistroDeAcesso.criarNovoRegistroDeAcesso(mensagem, Usuario.getListaUsuarios())); // Processa em thread separada
         } else {
             cadastrarNovoIdAcesso(mensagem); // Processa em thread separada
             modoCadastrarIdAcesso = false;
