@@ -4,12 +4,13 @@ import java.io.*;
 import java.util.*;
 
 public class Usuario {
-    private static final List<Usuario> usuarios = new ArrayList<>();
+    private static final List<Usuario> listaDeUsuarios = new ArrayList<>();
     private long id;
     private UUID idAcesso;
     private String nome;
     private String telefone;
     private String email;
+    private String caminhoImagem;
 
     public Usuario() {}
 
@@ -21,12 +22,21 @@ public class Usuario {
         this.email = email;
     }
 
+    public Usuario(long id, UUID idAcesso, String nome, String telefone, String email, String caminhoImagem) {
+        this.id = id;
+        this.idAcesso = idAcesso;
+        this.nome = nome;
+        this.telefone = telefone;
+        this.email = email;
+        this.caminhoImagem = caminhoImagem;
+    }
+
     public long getId() {
         return id;
     }
 
     public static List<Usuario> getListaUsuarios() {
-        return usuarios;
+        return listaDeUsuarios;
     }
 
     public void setId(long id) {
@@ -65,6 +75,13 @@ public class Usuario {
         this.email = email;
     }
 
+    public String getCaminhoImagem() {
+        return caminhoImagem;
+    }
+
+    public void setCaminhoImagem(String caminhoImagem) {
+        this.caminhoImagem = caminhoImagem;
+    }
 
     public static void carregarUsuarios(File arquivo) {
         try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
@@ -77,9 +94,10 @@ public class Usuario {
                             dados[1].equals("null") ? null : UUID.fromString(dados[1]),
                             dados[2],
                             dados[3],
-                            dados[4]
+                            dados[4],
+                            dados[5].equals("null") ? null : dados[5]
                     );
-                    usuarios.add(usuario);
+                    listaDeUsuarios.add(usuario);
                 }
             }
         } catch (IOException e) {
@@ -90,13 +108,14 @@ public class Usuario {
 
 
     public static void inserirUsuariosNoArquivo(File arquivo) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo, true))) {
-            for (Usuario usuario : usuarios) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo))) {
+            for (Usuario usuario : listaDeUsuarios) {
                 String linha = usuario.getId() + " " +
                         (usuario.getIdAcesso() == null ? "null" : usuario.getIdAcesso().toString()) + " " +
                         usuario.getNome() + " " +
                         usuario.getTelefone() + " " +
-                        usuario.getEmail();
+                        usuario.getEmail() + " " +
+                        usuario.getCaminhoImagem();
                 writer.write(linha);
                 writer.newLine();
             }
@@ -109,7 +128,7 @@ public class Usuario {
 
     public static void exibirUsuarios() {
         System.out.println("ID | Id Acesso | Nome | Telefone | Email");
-        for (Usuario usuario : usuarios) {
+        for (Usuario usuario : listaDeUsuarios) {
             System.out.println(usuario);
         }
     }
@@ -124,15 +143,15 @@ public class Usuario {
         System.out.print("Digite o email: ");
         String email = scanner.nextLine();
 
-        Usuario usuario = new Usuario((long) (usuarios.size() + 1), null, nome, telefone, email);
-        usuarios.add(usuario);
+        Usuario usuario = new Usuario((long) (listaDeUsuarios.size() + 1), null, nome, telefone, email);
+        listaDeUsuarios.add(usuario);
         inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
 
         System.out.println("Usuário cadastrado com sucesso: " + usuario);
     }
 
     private static Usuario buscarUsuarioPorId(long id) {
-        return usuarios.stream()
+        return listaDeUsuarios.stream()
                 .filter(usuario -> usuario.getId() == id)
                 .findFirst()
                 .orElse(null);
@@ -157,6 +176,8 @@ public class Usuario {
             usuario.setEmail(scanner.nextLine());
 
             System.out.println("Usuário atualizado com sucesso: " + usuario);
+
+            listaDeUsuarios.set((int) id-1, usuario);
             inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
         } else {
             System.out.println("Usuário não encontrado.");
@@ -173,7 +194,7 @@ public class Usuario {
 
         Usuario usuario = buscarUsuarioPorId(id);
 
-        if (usuarios.remove(usuario)) {
+        if (listaDeUsuarios.remove(usuario)) {
             System.out.println("Usuário deletado com sucesso.");
             inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
         } else {
