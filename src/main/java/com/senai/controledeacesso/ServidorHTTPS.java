@@ -235,12 +235,10 @@ public class ServidorHTTPS {
                     json.put("telefone", usuario.getTelefone());
                     json.put("email", usuario.getEmail());
                     json.put("imagem", usuario.getCaminhoImagem() != null ? usuario.getCaminhoImagem() : "-");
-
                     jsonArray.put(json);
+                    System.out.println("Listei os usuários");
                 }
             }
-
-
 
             // Envia a resposta como JSON
             byte[] response = jsonArray.toString().getBytes();
@@ -264,10 +262,12 @@ public class ServidorHTTPS {
                 GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
                 while ((linha = bufferedReader.readLine()) != null) {
                     corpoDaRequisicao.append(linha);
+                    System.out.println(corpoDaRequisicao.append(linha));
+
                 }
 
                 // Gera novo ID e cria o registro
-                int novoID = Usuario.getListaUsuarios().size()+1;
+                int novoID = Usuario.getListaUsuarios().size() + 1;
 
                 JSONObject json = new JSONObject(corpoDaRequisicao.toString());
                 String nome = json.getString("nome");
@@ -275,9 +275,9 @@ public class ServidorHTTPS {
                 String email = json.getString("email");
                 String nomeImagem = novoID + nome;
 
-                if(!json.getString("imagem").equals("-")) {
+                if (!json.getString("imagem").equals("-")) {
                     salvarImagem(json.getString("imagem"), nomeImagem);
-                }else {
+                } else {
                     nomeImagem = "-";
                 }
                 //Logs
@@ -294,7 +294,7 @@ public class ServidorHTTPS {
 //                ControleDeAcesso.matrizCadastro = novaMatriz;
                 Usuario usuario = new Usuario(novoID, null, nome, telefone, email, nomeImagem);
                 Usuario.getListaUsuarios().add(usuario);
-                    Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
+                Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
 //                ControleDeAcesso.salvarDadosNoArquivo();
 
                 String responseMessage = "Cadastro recebido com sucesso!";
@@ -314,27 +314,50 @@ public class ServidorHTTPS {
         public void handle(HttpExchange exchange) throws IOException {
             if ("PUT".equals(exchange.getRequestMethod())) {  // Mudando PATCH para PUT
                 exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+//                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8));
+//                StringBuilder corpoDaRequisicao = new StringBuilder();
+//                GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
+//                String linha;
+//                while ((linha = bufferedReader.readLine()) != null) {
+//                    corpoDaRequisicao.append(linha);
+//                }
+//                JSONObject json = new JSONObject(corpoDaRequisicao.toString());
+//
+//                String path = exchange.getRequestURI().getPath();
+//                String[] parts = path.split("/");
+//                int id = Integer.parseInt(parts[parts.length - 1]);
+//                System.out.println("id:" + id);
+
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8));
                 StringBuilder corpoDaRequisicao = new StringBuilder();
                 GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
                 String linha;
                 while ((linha = bufferedReader.readLine()) != null) {
                     corpoDaRequisicao.append(linha);
-                }
-                JSONObject json = new JSONObject(corpoDaRequisicao.toString());
+                    System.out.println(corpoDaRequisicao.append(linha));
 
+                }
+
+                if (corpoDaRequisicao.length() == 0) {
+                    System.out.println("erro no atualizar 400");
+                    exchange.sendResponseHeaders(400, -1); // Bad request
+                    return;
+                }
+
+                JSONObject json = new JSONObject(corpoDaRequisicao.toString());
                 String path = exchange.getRequestURI().getPath();
                 String[] parts = path.split("/");
                 int id = Integer.parseInt(parts[parts.length - 1]);
-                System.out.println("id:" + id);
 
-                // Verifica se o ID é válido e se o cadastro existe
-                if (id > 0) {
+                if (Usuario.getListaUsuarios().get(id-1) != null) {
+
+                    // Verifica se o ID é válido e se o cadastro existe
+//                if (id > 0) {
                     System.out.println("entrou no atualizar");
                     // Obtenha os dados do cadastro atual para substituir
 //                    String[] registro = new String[6];
-                    Usuario usuario = new Usuario(); // Criar um novo registro para garantir que o PUT substitua completamente
-                    usuario.setId(id);   // ID do cadastro
+                    Usuario usuario = Usuario.getListaUsuarios().get(id-1); // Criar um novo registro para garantir que o PUT substitua completamente
+//                    usuario.setId(id);   // ID do cadastro
                     // Substitui os dados fornecidos no corpo da requisição
                     usuario.setIdAcesso(UUID.fromString(json.has("idAcesso") ? json.getString("idAcesso") : "null"));
                     usuario.setNome(json.has("nome") ? json.getString("nome") : "");   // Verifica se o nome foi enviado
@@ -343,20 +366,21 @@ public class ServidorHTTPS {
                     // Verifica se a imagem foi enviada
                     String nomeImagem = json.has("nomeImagem") ? json.getString("nomeImagem") : "-";
                     if (json.has("imagem") && !json.getString("imagem").equals("-")) {
-                        salvarImagem(json.getString("imagem"),id+usuario.getNome());
-                        usuario.setCaminhoImagem(id+usuario.getNome());
+                        salvarImagem(json.getString("imagem"), id + usuario.getNome());
+                        usuario.setCaminhoImagem(id + usuario.getNome());
                     } else {
                         usuario.setCaminhoImagem(Usuario.getListaUsuarios().get(id).getNome().equals(usuario.getNome())
                                 ? Usuario.getListaUsuarios().get(id).getCaminhoImagem()
                                 : nomeImagem);
                     }
                     //Logs
-                    System.out.println("Edição: nome : " + usuario.getNome() + " | telefone : " + usuario.getTelefone() + " | email : " + usuario.getEmail());
+                    System.out.println("Edição: nome : " + usuario.getNome() + " | telefone : " + usuario.getTelefone() + " | email : " + usuario.getEmail() + " | imagem : " + usuario.getCaminhoImagem());
 
                     // Substitui o cadastro na matriz com os novos dados
                     //ControleDeAcesso.matrizCadastro[id] = registro;
-                    Usuario.getListaUsuarios().set(id-1, usuario);
-                    System.out.println("Atualizado: " + Usuario.getListaUsuarios().get(id-1) );
+                    Usuario.getListaUsuarios().set(id - 1, usuario);
+                    System.out.println(usuario.toString());
+                    System.out.println("Atualizado: " + Usuario.getListaUsuarios().get(id));
 
                     Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
 
@@ -388,6 +412,7 @@ public class ServidorHTTPS {
             fileOutputStream.write(dados);
         }
     }
+
     // Handler para deletar um cadastro existente (DELETE)
     private class DeleteCadastroHandler implements HttpHandler {
         @Override
@@ -409,9 +434,9 @@ public class ServidorHTTPS {
                     int id = Integer.parseInt(idPath);
                     System.out.println("ID convertido para inteiro: " + id);
 
-                    if (id > 0 && id < Usuario.getListaUsuarios().size() && Usuario.getListaUsuarios().get(id) != null) {
+                    if (Usuario.getListaUsuarios().get(id) != null) {
                         ControleDeAcesso.idUsuarioRecebidoPorHTTP = id;
-                        Usuario.deletarUsuario(scanner);
+                        Usuario.deletarUsuario(id);
 
                         response = "{\"status\":\"Cadastro deletado com sucesso.\"}";
                         statusCode = 200;
@@ -442,7 +467,6 @@ public class ServidorHTTPS {
     }
 
 
-
     // Classe para lidar com requisições de imagens
     private class ImagemHandler implements HttpHandler {
         @Override
@@ -451,8 +475,8 @@ public class ServidorHTTPS {
             System.out.println("Iniciando processamento no ImagemHandler");
 
             // Recupera o caminho completo da imagem solicitado pela URI
-            String imagePath = ControleDeAcesso.pastaImagens.getAbsolutePath() +"\\"+
-                    exchange.getRequestURI().getPath().replace("/imagens/", "")+".png";
+            String imagePath = Paths.get(ControleDeAcesso.pastaImagens.getAbsolutePath(),
+                    exchange.getRequestURI().getPath().replace("/imagens/", "") + ".png").toString();
             System.out.println("Caminho completo da imagem requisitada: " + imagePath);
 
             File imageFile = new File(imagePath);
