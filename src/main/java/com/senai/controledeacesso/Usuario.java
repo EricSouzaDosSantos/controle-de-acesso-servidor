@@ -201,6 +201,18 @@ public class Usuario {
             System.out.println("Usuário não encontrado.");
         }
     }
+    public static void deletarUsuario(long id) {
+        GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
+
+        Usuario usuario = buscarUsuarioPorId(id);
+
+        if (listaDeUsuarios.remove(usuario)) {
+            System.out.println("Usuário deletado com sucesso.");
+            inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
+        } else {
+            System.out.println("Usuário não encontrado.");
+        }
+    }
 
     @Override
     public String toString() {
