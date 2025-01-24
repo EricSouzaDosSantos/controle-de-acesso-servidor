@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Scanner;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ServidorHTTPS {
@@ -221,19 +223,20 @@ public class ServidorHTTPS {
         public void handle(HttpExchange exchange) throws IOException {
             JSONArray jsonArray = new JSONArray();
 
-            // Percorre a matrizCadastro a partir da segunda linha (ignora cabeçalho)
-            for (int i = 1; i < ControleDeAcesso.matrizCadastro.length; i++) {
-                String[] registro = ControleDeAcesso.matrizCadastro[i];
-                if (registro != null) { // Verifica se a linha está preenchida
-                    JSONObject json = new JSONObject();
-                    json.put("id", registro[0]);
-                    json.put("idAcesso", (registro[1] != null && !registro[1].isEmpty()) ? registro[1] : "-");
-                    json.put("nome", registro[2]);
-                    json.put("telefone", registro[3]);
-                    json.put("email", registro[4]);
-                    json.put("imagem", registro[5] != null ? registro[5] : "-");
 
+            // Percorre a matrizCadastr a partir da segunda linha (ignora cabeçalho)
+            for (Usuario usuario : Usuario.getListaUsuarios()) {
+//                String[] registro = ControleDeAcesso.matrizCadastr[i];
+                if (usuario != null) { // Verifica se a linha está preenchida
+                    JSONObject json = new JSONObject();
+                    json.put("id", usuario.getId());
+                    json.put("idAcesso", usuario.getIdAcesso() != null ? usuario.getIdAcesso().toString() : "-");
+                    json.put("nome", usuario.getNome());
+                    json.put("telefone", usuario.getTelefone());
+                    json.put("email", usuario.getEmail());
+                    json.put("imagem", usuario.getCaminhoImagem() != null ? usuario.getCaminhoImagem() : "-");
                     jsonArray.put(json);
+                    System.out.println("Listei os usuários");
                 }
             }
 
@@ -256,12 +259,15 @@ public class ServidorHTTPS {
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 StringBuilder corpoDaRequisicao = new StringBuilder();
                 String linha;
+                GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
                 while ((linha = bufferedReader.readLine()) != null) {
                     corpoDaRequisicao.append(linha);
+                    System.out.println(corpoDaRequisicao.append(linha));
+
                 }
 
                 // Gera novo ID e cria o registro
-                int novoID = ControleDeAcesso.matrizCadastro.length;
+                int novoID = Usuario.getListaUsuarios().size() + 1;
 
                 JSONObject json = new JSONObject(corpoDaRequisicao.toString());
                 String nome = json.getString("nome");
@@ -269,24 +275,27 @@ public class ServidorHTTPS {
                 String email = json.getString("email");
                 String nomeImagem = novoID + nome;
 
-                if(!json.getString("imagem").equals("-")) {
+                if (!json.getString("imagem").equals("-")) {
                     salvarImagem(json.getString("imagem"), nomeImagem);
-                }else {
+                } else {
                     nomeImagem = "-";
                 }
                 //Logs
                 System.out.println("nome : " + nome + " | telefone : " + telefone + " | email : " + email);
 
-                String[] novoUsuario = {String.valueOf(novoID), "-", nome, telefone, email, nomeImagem};
-                String[][] novaMatriz = new String[novoID + 1][novoUsuario[0].length()];
+//                String[] novoUsuario = {String.valueOf(novoID), "-", nome, telefone, email, nomeImagem};
+//                String[][] novaMatriz = new String[novoID + 1][novoUsuario[0].length()];
+//
+//                for (int linhas = 0; linhas < ControleDeAcesso.matrizCadastro.length; linhas++) {
+//                    novaMatriz[linhas] = Arrays.copyOf(ControleDeAcesso.matrizCadastro[linhas], ControleDeAcesso.matrizCadastro[linhas].length);
+//                }
 
-                for (int linhas = 0; linhas < ControleDeAcesso.matrizCadastro.length; linhas++) {
-                    novaMatriz[linhas] = Arrays.copyOf(ControleDeAcesso.matrizCadastro[linhas], ControleDeAcesso.matrizCadastro[linhas].length);
-                }
-
-                novaMatriz[novoID] = novoUsuario;
-                ControleDeAcesso.matrizCadastro = novaMatriz;
-                ControleDeAcesso.salvarDadosNoArquivo();
+//                novaMatriz[novoID] = novoUsuario;
+//                ControleDeAcesso.matrizCadastro = novaMatriz;
+                Usuario usuario = new Usuario(novoID, null, nome, telefone, email, nomeImagem);
+                Usuario.getListaUsuarios().add(usuario);
+                Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
+//                ControleDeAcesso.salvarDadosNoArquivo();
 
                 String responseMessage = "Cadastro recebido com sucesso!";
                 exchange.sendResponseHeaders(200, responseMessage.length());
@@ -305,47 +314,75 @@ public class ServidorHTTPS {
         public void handle(HttpExchange exchange) throws IOException {
             if ("PUT".equals(exchange.getRequestMethod())) {  // Mudando PATCH para PUT
                 exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+//                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8));
+//                StringBuilder corpoDaRequisicao = new StringBuilder();
+//                GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
+//                String linha;
+//                while ((linha = bufferedReader.readLine()) != null) {
+//                    corpoDaRequisicao.append(linha);
+//                }
+//                JSONObject json = new JSONObject(corpoDaRequisicao.toString());
+//
+//                String path = exchange.getRequestURI().getPath();
+//                String[] parts = path.split("/");
+//                int id = Integer.parseInt(parts[parts.length - 1]);
+//                System.out.println("id:" + id);
+
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8));
                 StringBuilder corpoDaRequisicao = new StringBuilder();
+                GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
                 String linha;
                 while ((linha = bufferedReader.readLine()) != null) {
                     corpoDaRequisicao.append(linha);
-                }
-                JSONObject json = new JSONObject(corpoDaRequisicao.toString());
+                    System.out.println(corpoDaRequisicao.append(linha));
 
+                }
+
+                if (corpoDaRequisicao.length() == 0) {
+                    System.out.println("erro no atualizar 400");
+                    exchange.sendResponseHeaders(400, -1); // Bad request
+                    return;
+                }
+
+                JSONObject json = new JSONObject(corpoDaRequisicao.toString());
                 String path = exchange.getRequestURI().getPath();
                 String[] parts = path.split("/");
                 int id = Integer.parseInt(parts[parts.length - 1]);
-                System.out.println("id:" + id);
 
-                // Verifica se o ID é válido e se o cadastro existe
-                if (id > 0) {
+                if (Usuario.getListaUsuarios().get(id-1) != null) {
 
+                    // Verifica se o ID é válido e se o cadastro existe
+//                if (id > 0) {
+                    System.out.println("entrou no atualizar");
                     // Obtenha os dados do cadastro atual para substituir
-                    String[] registro = new String[6];  // Criar um novo registro para garantir que o PUT substitua completamente
-                    registro[0] = String.valueOf(id);   // ID do cadastro
+//                    String[] registro = new String[6];
+                    Usuario usuario = Usuario.getListaUsuarios().get(id-1); // Criar um novo registro para garantir que o PUT substitua completamente
+//                    usuario.setId(id);   // ID do cadastro
                     // Substitui os dados fornecidos no corpo da requisição
-                    registro[1] = json.has("idAcesso") ? json.getString("idAcesso") : "-";
-                    registro[2] = json.has("nome") ? json.getString("nome") : "";  // Verifica se o nome foi enviado
-                    registro[3] = json.has("telefone") ? json.getString("telefone") : "";  // Verifica se o telefone foi enviado
-                    registro[4] = json.has("email") ? json.getString("email") : "";  // Verifica se o email foi enviado
+                    usuario.setIdAcesso(UUID.fromString(json.has("idAcesso") ? json.getString("idAcesso") : "null"));
+                    usuario.setNome(json.has("nome") ? json.getString("nome") : "");   // Verifica se o nome foi enviado
+                    usuario.setTelefone(json.has("telefone") ? json.getString("telefone") : "");   // Verifica se o telefone foi enviado
+                    usuario.setEmail(json.has("email") ? json.getString("email") : "");   // Verifica se o email foi enviado
                     // Verifica se a imagem foi enviada
                     String nomeImagem = json.has("nomeImagem") ? json.getString("nomeImagem") : "-";
                     if (json.has("imagem") && !json.getString("imagem").equals("-")) {
-                        salvarImagem(json.getString("imagem"),id+registro[2] );
-                        registro[5] = id+registro[2];
+                        salvarImagem(json.getString("imagem"), id + usuario.getNome());
+                        usuario.setCaminhoImagem(id + usuario.getNome());
                     } else {
-                        registro[5] = ControleDeAcesso.matrizCadastro[id][2].equals(registro[2])
-                                ? ControleDeAcesso.matrizCadastro[id][5]
-                                : nomeImagem;
+                        usuario.setCaminhoImagem(Usuario.getListaUsuarios().get(id).getNome().equals(usuario.getNome())
+                                ? Usuario.getListaUsuarios().get(id).getCaminhoImagem()
+                                : nomeImagem);
                     }
                     //Logs
-                    System.out.println("Edição: nome : " + registro[2] + " | telefone : " + registro[3] + " | email : " + registro[4]);
+                    System.out.println("Edição: nome : " + usuario.getNome() + " | telefone : " + usuario.getTelefone() + " | email : " + usuario.getEmail() + " | imagem : " + usuario.getCaminhoImagem());
 
                     // Substitui o cadastro na matriz com os novos dados
-                    ControleDeAcesso.matrizCadastro[id] = registro;
+                    //ControleDeAcesso.matrizCadastro[id] = registro;
+                    Usuario.getListaUsuarios().set(id - 1, usuario);
+                    System.out.println(usuario.toString());
+                    System.out.println("Atualizado: " + Usuario.getListaUsuarios().get(id));
 
-                    ControleDeAcesso.salvarDadosNoArquivo();
+                    Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
 
                     // Resposta de sucesso
                     String response = "{\"status\":\"Cadastro atualizado com sucesso.\"}";
@@ -375,12 +412,14 @@ public class ServidorHTTPS {
             fileOutputStream.write(dados);
         }
     }
+
     // Handler para deletar um cadastro existente (DELETE)
     private class DeleteCadastroHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             System.out.println("Iniciando processamento no DeleteCadastroHandler");
 
+            Scanner scanner = new Scanner(System.in);
             if ("DELETE".equalsIgnoreCase(exchange.getRequestMethod())) {
                 exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
                 System.out.println("Método DELETE confirmado e CORS habilitado.");
@@ -395,9 +434,9 @@ public class ServidorHTTPS {
                     int id = Integer.parseInt(idPath);
                     System.out.println("ID convertido para inteiro: " + id);
 
-                    if (id > 0 && id < ControleDeAcesso.matrizCadastro.length && ControleDeAcesso.matrizCadastro[id] != null) {
+                    if (Usuario.getListaUsuarios().get(id) != null) {
                         ControleDeAcesso.idUsuarioRecebidoPorHTTP = id;
-                        ControleDeAcesso.deletarUsuario();
+                        Usuario.deletarUsuario(id);
 
                         response = "{\"status\":\"Cadastro deletado com sucesso.\"}";
                         statusCode = 200;
@@ -428,7 +467,6 @@ public class ServidorHTTPS {
     }
 
 
-
     // Classe para lidar com requisições de imagens
     private class ImagemHandler implements HttpHandler {
         @Override
@@ -437,8 +475,8 @@ public class ServidorHTTPS {
             System.out.println("Iniciando processamento no ImagemHandler");
 
             // Recupera o caminho completo da imagem solicitado pela URI
-            String imagePath = ControleDeAcesso.pastaImagens.getAbsolutePath() +"\\"+
-                    exchange.getRequestURI().getPath().replace("/imagens/", "")+".png";
+            String imagePath = Paths.get(ControleDeAcesso.pastaImagens.getAbsolutePath(),
+                    exchange.getRequestURI().getPath().replace("/imagens/", "") + ".png").toString();
             System.out.println("Caminho completo da imagem requisitada: " + imagePath);
 
             File imageFile = new File(imagePath);
@@ -566,7 +604,9 @@ public class ServidorHTTPS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             int usuarioId = Integer.parseInt(exchange.getRequestURI().getPath().split("/")[2]);
-            String status = ControleDeAcesso.matrizCadastro[usuarioId][1].equals("-") ? "aguardando" : "sucesso";
+//            String status = ControleDeAcesso.matrizCadastr[usuarioId][1].equals("-") ? "aguardando" : "sucesso";
+
+            String status = Usuario.getListaUsuarios().get(usuarioId).getIdAcesso().equals("-") ? "aguardando" : "sucesso";
 
             String response = "{\"status\":\"" + status + "\"}";
             exchange.getResponseHeaders().add("Content-Type", "application/json");
