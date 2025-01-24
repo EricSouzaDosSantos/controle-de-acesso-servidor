@@ -150,7 +150,7 @@ public class Usuario {
         System.out.println("Usuário cadastrado com sucesso: " + usuario);
     }
 
-    private static Usuario buscarUsuarioPorId(long id) {
+    public static Usuario buscarUsuarioPorId(long id) {
         return listaDeUsuarios.stream()
                 .filter(usuario -> usuario.getId() == id)
                 .findFirst()
