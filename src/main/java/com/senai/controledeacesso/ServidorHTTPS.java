@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -199,13 +200,25 @@ public class ServidorHTTPS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             exchange.getResponseHeaders().set("Content-Type", "application/json");
-            String jsonResponse = ControleDeAcesso.matrizRegistrosDeAcesso.length == 0
+//            String jsonResponse = ControleDeAcesso.matrizRegistrosDeAcesso.length == 0
+//                    ? "[]"
+//                    : "[" +
+//                    Arrays.stream(ControleDeAcesso.matrizRegistrosDeAcesso)
+//                            .map(registro -> String.format("{\"nome\":\"%s\",\"horario\":\"%s\",\"imagem\":\"%s\"}", registro[0], registro[1], registro[2]))
+//                            .collect(Collectors.joining(",")) +
+//                    "]";
+
+            String jsonResponse = RegistroDeAcesso.getListaDeRegistroDeAcesso().isEmpty()
                     ? "[]"
-                    : "[" +
-                    Arrays.stream(ControleDeAcesso.matrizRegistrosDeAcesso)
-                            .map(registro -> String.format("{\"nome\":\"%s\",\"horario\":\"%s\",\"imagem\":\"%s\"}", registro[0], registro[1], registro[2]))
-                            .collect(Collectors.joining(",")) +
-                    "]";
+                    : RegistroDeAcesso.getListaDeRegistroDeAcesso().stream()
+                    .map(registro -> String.format(
+                            "{\"nome\":\"%s\",\"horario\":\"%s\",\"imagem\":\"%s\"}",
+                            registro.getUsuario().getNome(),
+                            registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                            registro.getUsuario().getCaminhoImagem()
+                    ))
+                    .collect(Collectors.joining(",", "[", "]"));
+
             byte[] bytesResposta = jsonResponse.getBytes();
             exchange.sendResponseHeaders(200, bytesResposta.length);
             OutputStream os = exchange.getResponseBody();
@@ -611,7 +624,7 @@ public class ServidorHTTPS {
             int usuarioId = Integer.parseInt(exchange.getRequestURI().getPath().split("/")[2]);
 //            String status = ControleDeAcesso.matrizCadastr[usuarioId][1].equals("-") ? "aguardando" : "sucesso";
 
-            String status = Usuario.getListaUsuarios().get(usuarioId).getIdAcesso() == null ? "aguardando" : "sucesso";
+            String status = Usuario.buscarUsuarioPorId(usuarioId).getIdAcesso() == null ? "aguardando" : "sucesso";
 
             String response = "{\"status\":\"" + status + "\"}";
             exchange.getResponseHeaders().add("Content-Type", "application/json");
