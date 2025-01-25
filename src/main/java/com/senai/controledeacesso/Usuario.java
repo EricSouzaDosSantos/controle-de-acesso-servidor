@@ -83,20 +83,45 @@ public class Usuario {
         this.caminhoImagem = caminhoImagem;
     }
 
+//    public static void carregarUsuarios(File arquivo) {
+//        try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
+//            String linha;
+//            while ((linha = reader.readLine()) != null) {
+//                if (!linha.trim().isEmpty()) {
+//                    String[] dados = linha.split(" | ");
+//                    Usuario usuario = new Usuario(
+//                            Long.parseLong(dados[0]),
+//                            dados[1].equals("null") ? null : UUID.fromString(dados[1]),
+//                            dados[2],
+//                            dados[3],
+//                            dados[4],
+//                            dados[5].equals("null") ? null : dados[5]
+//                    );
+//                    listaDeUsuarios.add(usuario);
+//                }
+//            }
+//        } catch (IOException e) {
+//            throw new RuntimeException("Erro ao carregar usuários", e);
+//        }
+//    }
+
     public static void carregarUsuarios(File arquivo) {
         try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
             String linha;
             while ((linha = reader.readLine()) != null) {
                 if (!linha.trim().isEmpty()) {
-                    String[] dados = linha.split("\\s+");
+                    // Divide a linha usando " | " como separador literal
+                    String[] dados = linha.split("\\s*\\|\\s*");
+
                     Usuario usuario = new Usuario(
                             Long.parseLong(dados[0]),
-                            dados[1].equals("null") ? null : UUID.fromString(dados[1]),
+                            "null".equals(dados[1]) ? null : UUID.fromString(dados[1]),
                             dados[2],
                             dados[3],
                             dados[4],
-                            dados[5].equals("null") ? null : dados[5]
+                            "null".equals(dados[5]) ? null : dados[5]
                     );
+
                     listaDeUsuarios.add(usuario);
                 }
             }
@@ -107,14 +132,15 @@ public class Usuario {
 
 
 
+
     public static void inserirUsuariosNoArquivo(File arquivo) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo))) {
             for (Usuario usuario : listaDeUsuarios) {
-                String linha = usuario.getId() + " " +
-                        (usuario.getIdAcesso() == null ? "null" : usuario.getIdAcesso().toString()) + " " +
-                        usuario.getNome() + " " +
-                        usuario.getTelefone() + " " +
-                        usuario.getEmail() + " " +
+                String linha = usuario.getId() + " | " +
+                        (usuario.getIdAcesso() == null ? "null" : usuario.getIdAcesso().toString()) + " | " +
+                        usuario.getNome() + " | " +
+                        usuario.getTelefone() + " | " +
+                        usuario.getEmail() + " | " +
                         usuario.getCaminhoImagem();
                 writer.write(linha);
                 writer.newLine();
