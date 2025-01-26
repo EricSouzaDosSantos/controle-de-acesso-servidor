@@ -47,7 +47,7 @@ public class RegistroDeAcesso {
         GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
 
         for (Usuario usuario : listaDeUsuarios) {
-            if (usuario.getIdAcesso().equals(idAcessoRecebido)) {
+            if (usuario.getIdAcesso().toString().equals(idAcessoRecebido)) {
                 RegistroDeAcesso novoAcesso = new RegistroDeAcesso(
                         usuario,
                         LocalDateTime.now()
@@ -93,16 +93,16 @@ public class RegistroDeAcesso {
 
             while ((linha = reader.readLine()) != null) {
                 if (!linha.trim().isEmpty()) {
-                    String[] dados = linha.split(",");
+                    String[] dados = linha.split("\\s*\\|\\s*");
                     Usuario usuario = new Usuario(
                             Long.parseLong(dados[0]),
                             dados[1].equals("null") ? null : UUID.fromString(dados[1]),
                             dados[2],
                             dados[3],
                             dados[4],
-                            dados[5].equals("null") ? null : dados[5]
+                            dados[6].equals("null") ? null : dados[6]
                     );
-                    LocalDateTime dataHora = LocalDateTime.parse(dados[1], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    LocalDateTime dataHora = LocalDateTime.parse(dados[5], DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
                     listaDeRegistroDeAcesso.add(new RegistroDeAcesso(usuario, dataHora));
                 }
@@ -116,9 +116,11 @@ public class RegistroDeAcesso {
     private static void salvarDadosDeAcessoNoArquivo(File arquivoRegistroDeAcesso) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoRegistroDeAcesso))) {
             for (RegistroDeAcesso registro : listaDeRegistroDeAcesso) {
-                writer.write(String.format("%s,%s,%s\n",
+                System.out.println("salvou os dados no arquivo");
+                writer.write(String.format("%s | %s | %s\n",
                         registro.getUsuario(),
-                        registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                        registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                        registro.getUsuario().getCaminhoImagem()
                 ));
             }
         } catch (IOException e) {
