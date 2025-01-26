@@ -104,9 +104,9 @@ public class CLienteMQTT {
 
     public void publicarMensagem(String topico, String mensagem) {
         if (cliente.isConnected()) {
+            try {
             MqttMessage mqttMessage = new MqttMessage(mensagem.getBytes(StandardCharsets.UTF_8));
             mqttMessage.setQos(1);
-            try {
                 cliente.publish(topico, mqttMessage);
                 System.out.println("Mensagem publicada no tópico " + topico + ": " + mensagem);
             } catch (MqttException e) {
