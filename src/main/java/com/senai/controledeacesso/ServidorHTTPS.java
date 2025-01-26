@@ -23,6 +23,8 @@ public class ServidorHTTPS {
 
     private HttpsServer server;
 
+    private static boolean imageUpdate = false;
+
     public ServidorHTTPS() {
         iniciarServidorHTTPS();
     }
@@ -200,24 +202,27 @@ public class ServidorHTTPS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             exchange.getResponseHeaders().set("Content-Type", "application/json");
-//            String jsonResponse = ControleDeAcesso.matrizRegistrosDeAcesso.length == 0
-//                    ? "[]"
-//                    : "[" +
-//                    Arrays.stream(ControleDeAcesso.matrizRegistrosDeAcesso)
-//                            .map(registro -> String.format("{\"nome\":\"%s\",\"horario\":\"%s\",\"imagem\":\"%s\"}", registro[0], registro[1], registro[2]))
-//                            .collect(Collectors.joining(",")) +
-//                    "]";
-
-            String jsonResponse = RegistroDeAcesso.getListaDeRegistroDeAcesso().isEmpty()
+            String jsonResponse = ControleDeAcesso.matrizRegistrosDeAcesso.length == 0
                     ? "[]"
-                    : RegistroDeAcesso.getListaDeRegistroDeAcesso().stream()
-                    .map(registro -> String.format(
-                            "{\"nome\":\"%s\",\"horario\":\"%s\",\"imagem\":\"%s\"}",
-                            registro.getUsuario().getNome(),
-                            registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                            registro.getUsuario().getCaminhoImagem()
-                    ))
-                    .collect(Collectors.joining(",", "[", "]"));
+                    : "[" +
+                    RegistroDeAcesso.getListaDeRegistroDeAcesso().stream()
+                            .map(registro -> String.format("{\"nome\":\"%s\",\"horario\":\"%s\",\"imagem\":\"%s\"}",
+                                    registro.getUsuario().getNome(),
+                                    registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                                    registro.getUsuario().getCaminhoImagem()))
+                            .collect(Collectors.joining(",")) +
+                    "]";
+
+//            String jsonResponse = RegistroDeAcesso.getListaDeRegistroDeAcesso().isEmpty()
+//                    ? "[]"
+//                    : RegistroDeAcesso.getListaDeRegistroDeAcesso().stream()
+//                    .map(registro -> String.format(
+//                            "{\"nome\":\"%s\",\"horario\":\"%s\",\"imagem\":\"%s\"}",
+//                            registro.getUsuario().getNome(),
+//                            registro.getDataHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+//                            registro.getUsuario().getCaminhoImagem()
+//                    ))
+//                    .collect(Collectors.joining(",", "[", "]"));
 
             byte[] bytesResposta = jsonResponse.getBytes();
             exchange.sendResponseHeaders(200, bytesResposta.length);
@@ -244,7 +249,7 @@ public class ServidorHTTPS {
                     json.put("nome", usuario.getNome());
                     json.put("telefone", usuario.getTelefone());
                     json.put("email", usuario.getEmail());
-                    json.put("imagem", usuario.getCaminhoImagem() != null ? usuario.getCaminhoImagem() : "-");
+                    json.put("imagem", usuario.getCaminhoImagem() != null ? usuario.getCaminhoImagem().replace(" ", "-") : "-");
                     jsonArray.put(json);
                     System.out.println("Listei os usuários");
                 }
@@ -272,8 +277,6 @@ public class ServidorHTTPS {
                 GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
                 while ((linha = bufferedReader.readLine()) != null) {
                     corpoDaRequisicao.append(linha);
-                    System.out.println(corpoDaRequisicao.append(linha));
-
                 }
 
                 // Gera novo ID e cria o registro
@@ -286,7 +289,7 @@ public class ServidorHTTPS {
                 String nomeImagem = novoID + nome;
 
                 if (!json.getString("imagem").equals("-")) {
-                    salvarImagem(json.getString("imagem"), nomeImagem);
+                    salvarImagem(json.getString("imagem").replace(" ", "-"), nomeImagem);
                 } else {
                     nomeImagem = "-";
                 }
@@ -359,7 +362,6 @@ public class ServidorHTTPS {
                     // Obtenha os dados do cadastro atual para substituir
 //                    String[] registro = new String[6];
                     Usuario usuario = Usuario.buscarUsuarioPorId(id);
-                    System.out.println(usuario.toString());// Criar um novo registro para garantir que o PUT substitua completamente
 //                    usuario.setId(id);   // ID do cadastro
                     // Substitui os dados fornecidos no corpo da requisição
                     System.out.println("vai alterar uuid");
@@ -371,20 +373,50 @@ public class ServidorHTTPS {
                     // Verifica se a imagem foi enviada
                     System.out.println("alterou os parametros");
 
-                    String nomeImagem = json.has("nomeImagem") ? json.getString("nomeImagem") : "-";
+                    String nomeImagem = json.has("nomeImagem") ? json.getString("nomeImagem").replace(" ", "-") : "-";
                     System.out.println("alterou os parametros e imagem");
+//                    if (json.has("imagem") && !json.getString("imagem").equals("-")) {
+//                        System.out.println("passou na imagem if");
+//                        imageUpdate = true;
+//                        salvarImagem(json.getString("imagem"), id + usuario.getNome());
+//                        usuario.setCaminhoImagem(id + usuario.getNome().replace(" ", "-"));
+//                        System.out.println("Imagem salva em: " + new File(ControleDeAcesso.pastaImagens, id + usuario.getNome() + ".png").getAbsolutePath());
+//
+//                    } else {
+//                        usuario.setCaminhoImagem(Usuario.buscarUsuarioPorId(id).getNome().equals(usuario.getNome())
+//                                ? Usuario.buscarUsuarioPorId(id).getCaminhoImagem()
+//                                : nomeImagem);
+//                        System.out.println("passou na imagem else");
+//                    }
                     if (json.has("imagem") && !json.getString("imagem").equals("-")) {
-                        System.out.println("passou na imagem if");
+                        String caminhoAntigo = usuario.getCaminhoImagem();
+                        System.out.println(caminhoAntigo);
+
+                        // Salvar a nova imagem
                         salvarImagem(json.getString("imagem"), id + usuario.getNome());
-                        usuario.setCaminhoImagem(id + usuario.getNome());
+                        usuario.setCaminhoImagem(id + usuario.getNome().replace(" ", "-"));
+
+                        // Excluir a imagem antiga, se necessário
+                        if (caminhoAntigo != null && !caminhoAntigo.equals(usuario.getCaminhoImagem())) {
+                            File imagemAntiga = new File(ControleDeAcesso.pastaImagens, caminhoAntigo + ".png");
+                            if (imagemAntiga.exists()) {
+                                boolean excluido = imagemAntiga.delete();
+                                System.out.println(excluido ? "Imagem antiga excluída com sucesso." : "Falha ao excluir a imagem antiga.");
+                            }
+                        }
+                        imageUpdate = true;
+
+                        System.out.println("Imagem salva em: " + new File(ControleDeAcesso.pastaImagens, id + usuario.getNome() + ".png").getAbsolutePath());
                     } else {
+                        // Caso não haja nova imagem, manter a antiga
                         usuario.setCaminhoImagem(Usuario.buscarUsuarioPorId(id).getNome().equals(usuario.getNome())
                                 ? Usuario.buscarUsuarioPorId(id).getCaminhoImagem()
                                 : nomeImagem);
-                        System.out.println("passou na imagem else");
+                        System.out.println("Nenhuma nova imagem enviada. Mantendo a imagem existente.");
                     }
+
                     //Logs
-                    System.out.println("Edição: nome : " + usuario.getNome() + " | telefone : " + usuario.getTelefone() + " | email : " + usuario.getEmail() + " | imagem : " + usuario.getCaminhoImagem());
+                    System.out.println("Edição: nome : " + usuario.getNome() + " | telefone : " + usuario.getTelefone() + " | email : " + usuario.getEmail());
 
                     // Substitui o cadastro na matriz com os novos dados
                     long idUser = Usuario.getListaUsuarios().indexOf(Usuario.buscarUsuarioPorId(id));
@@ -420,6 +452,9 @@ public class ServidorHTTPS {
 
     private void salvarImagem(String imagemBase64, String nomeImagem) throws IOException {
         byte[] dados = Base64.getDecoder().decode(imagemBase64);
+
+        nomeImagem = nomeImagem.replace(" ", "-");
+
         // Caminho completo para salvar a imagem
         File arquivoNovaImagem = new File(ControleDeAcesso.pastaImagens, nomeImagem + ".png");
         try (FileOutputStream fileOutputStream = new FileOutputStream(arquivoNovaImagem)) {
@@ -451,19 +486,19 @@ public class ServidorHTTPS {
 
                     long idUser = Usuario.getListaUsuarios().indexOf(Usuario.buscarUsuarioPorId(id));
 
-                        if (idUser != -1 && Usuario.getListaUsuarios().get((int) idUser) != null) {
-                            System.out.println("Entrou no delete");
-                            ControleDeAcesso.idUsuarioRecebidoPorHTTP = id;
-                            Usuario.deletarUsuario(id);
+                    if (idUser != -1 && Usuario.getListaUsuarios().get((int) idUser) != null) {
+                        System.out.println("Entrou no delete");
+                        ControleDeAcesso.idUsuarioRecebidoPorHTTP = id;
+                        Usuario.deletarUsuario(id);
 
-                            response = "{\"status\":\"Cadastro deletado com sucesso.\"}";
-                            statusCode = 200;
-                            System.out.println("Usuário deletado com sucesso.");
-                        } else {
-                            response = "{\"status\":\"ID não encontrado.\"}";
-                            statusCode = 404;
-                            System.out.println("ID não encontrado ou inválido.");
-                        }
+                        response = "{\"status\":\"Cadastro deletado com sucesso.\"}";
+                        statusCode = 200;
+                        System.out.println("Usuário deletado com sucesso.");
+                    } else {
+                        response = "{\"status\":\"ID não encontrado.\"}";
+                        statusCode = 404;
+                        System.out.println("ID não encontrado ou inválido.");
+                    }
                 } catch (NumberFormatException e) {
                     response = "{\"status\":\"ID inválido.\"}";
                     statusCode = 400;
@@ -494,7 +529,7 @@ public class ServidorHTTPS {
 
             // Recupera o caminho completo da imagem solicitado pela URI
             String imagePath = Paths.get(ControleDeAcesso.pastaImagens.getAbsolutePath(),
-                    exchange.getRequestURI().getPath().replace("/imagens/", "") + ".png").toString();
+                    exchange.getRequestURI().getPath().replace("/imagens/", "").replace(" ", "-") + ".png").toString();
             System.out.println("Caminho completo da imagem requisitada: " + imagePath);
 
             File imageFile = new File(imagePath);
@@ -538,25 +573,33 @@ public class ServidorHTTPS {
             String response;
             int statusCode;
 
+
             if ("DELETE".equalsIgnoreCase(exchange.getRequestMethod())) {
                 String path = exchange.getRequestURI().getPath();
                 System.out.println("Caminho da URI: " + path);
 
                 String nomeImagem = path.replaceFirst("/imagens/deletar/", "") + ".png";
+                nomeImagem = nomeImagem.replace(" ", "-");
                 System.out.println("Nome da imagem extraído: " + nomeImagem);
 
                 File arquivoImagem = new File(ControleDeAcesso.pastaImagens.getAbsolutePath(), nomeImagem);
                 System.out.println("Caminho completo do arquivo: " + arquivoImagem.getAbsolutePath());
 
                 if (arquivoImagem.exists() && arquivoImagem.isFile()) {
-                    if (arquivoImagem.delete()) {
-                        response = "{ \"status\": \"sucesso\", \"mensagem\": \"Imagem excluída com sucesso.\" }";
+                    if (imageUpdate) {
+                        response = "{ \"status\": \"sucesso\", \"mensagem\": \"Imagem excluídaRegistros de Acesso com sucesso.\" }";
                         statusCode = HttpURLConnection.HTTP_OK;
-                        System.out.println("Imagem excluída com sucesso.");
+                        System.out.println("Imagem atualizada com sucesso.");
                     } else {
-                        response = "{ \"status\": \"erro\", \"mensagem\": \"Falha ao excluir a imagem.\" }";
-                        statusCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
-                        System.out.println("Erro: Falha ao excluir a imagem.");
+                        if (arquivoImagem.delete()) {
+                            response = "{ \"status\": \"sucesso\", \"mensagem\": \"Imagem excluída com sucesso.\" }";
+                            statusCode = HttpURLConnection.HTTP_OK;
+                            System.out.println("Imagem excluída com sucesso.");
+                        } else {
+                            response = "{ \"status\": \"erro\", \"mensagem\": \"Falha ao excluir a imagem.\" }";
+                            statusCode = HttpURLConnection.HTTP_INTERNAL_ERROR;
+                            System.out.println("Erro: Falha ao excluir a imagem.");
+                        }
                     }
                 } else {
                     response = "{ \"status\": \"erro\", \"mensagem\": \"Imagem não encontrada.\" }";
@@ -568,6 +611,7 @@ public class ServidorHTTPS {
                 statusCode = HttpURLConnection.HTTP_BAD_METHOD;
                 System.out.println("Erro: Método não permitido. Apenas DELETE é suportado.");
             }
+
 
             // Envia resposta
             byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
@@ -587,6 +631,7 @@ public class ServidorHTTPS {
         public void handle(HttpExchange exchange) throws IOException {
             if ("POST".equals(exchange.getRequestMethod())) {
                 // Receber o ID do usuário e o dispositivo que solicitou o registro
+                System.out.println("Entrou em registro da tag");
                 String requestBody = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))
                         .lines().collect(Collectors.joining());
                 JSONObject json = new JSONObject(requestBody);
@@ -599,6 +644,7 @@ public class ServidorHTTPS {
 
                 // Publicar no broker qual dispositivo foi habilitado
                 ControleDeAcesso.conexaoMQTT.publicarMensagem("cadastro/disp", dispositivo);
+                System.out.println("enviou a mensagem");
 
                 // Criação da resposta JSON
                 String response = new JSONObject()
@@ -612,6 +658,7 @@ public class ServidorHTTPS {
                 // Escrita e fechamento do corpo da resposta
                 try (OutputStream os = exchange.getResponseBody()) {
                     os.write(response.getBytes(StandardCharsets.UTF_8));
+                    System.out.println("saindo do registro de tag");
                 }
                 exchange.close();
             }
