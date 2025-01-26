@@ -115,6 +115,7 @@ public class ControleDeAcesso {
     }
 
     private static void processarMensagemMQTTRecebida(String mensagem) {
+        System.out.println("mensagem recebida: "+mensagem);
         if (!modoCadastrarIdAcesso) {
             executorIdentificarAcessos.submit(() -> RegistroDeAcesso.criarNovoRegistroDeAcesso(mensagem, Usuario.getListaUsuarios())); // Processa em thread separada
         } else {
@@ -139,19 +140,27 @@ public class ControleDeAcesso {
             System.out.print("Digite o ID do usuário para associar ao novo idAcesso: ");
             idUsuarioEscolhido = scanner.nextLine();
             conexaoMQTT.publicarMensagem(topico, dispositivoEscolhido);
+            System.out.println("publicou a mensagem");
         }
 
         modoCadastrarIdAcesso = true;
+        System.out.println("saiu do publicar");
 
         for(Usuario usuario: listaDeUsuarios){
+            System.out.println("Comparando id");
+            System.out.println("novoIdAcesso: "+novoIdAcesso);
             if(usuario.getId() == Integer.parseInt(idUsuarioEscolhido)){
+                System.out.println("vai pegar o uuid");
+
                 usuario.setIdAcesso(UUID.fromString(novoIdAcesso));
+                System.out.println("Pegou o uuid");
                 System.out.println("id de acesso " + novoIdAcesso + " associado ao usuário " + usuario.getNome());
                 conexaoMQTT.publicarMensagem("cadastro/disp", "CadastroConcluido");
                 encontrado = true;
                 Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
                 break;
             }
+            System.out.println("Comparou");
         }
         // Se não encontrou o usuário, imprime uma mensagem
         if (!encontrado) {
