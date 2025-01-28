@@ -2,6 +2,7 @@ package com.senai.controledeacesso;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Future;
 
 public class Usuario {
     private static final List<Usuario> listaDeUsuarios = new ArrayList<>();
@@ -174,6 +175,72 @@ public class Usuario {
         inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
 
         System.out.println("Usuário cadastrado com sucesso: " + usuario);
+    }
+
+    public static void aguardarCadastroDeIdAcesso() {
+        ControleDeAcesso.modoCadastrarIdAcesso = true;
+        System.out.println("Aguardando nova tag ou cartão para associar ao usuário");
+        // Usar Future para aguardar até que o cadastro de ID seja concluído
+        Future<?> future = ControleDeAcesso.executorCadastroIdAcesso.submit(() -> {
+            while (ControleDeAcesso.modoCadastrarIdAcesso) {
+                // Loop em execução enquanto o modoCadastrarIdAcesso estiver ativo
+                try {
+                    Thread.sleep(100); // Evita uso excessivo de CPU
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
+
+        try {
+            future.get(); // Espera até que o cadastro termine
+        } catch (Exception e) {
+            System.err.println("Erro ao aguardar cadastro: " + e.getMessage());
+        }
+    }
+
+    public static void cadastrarNovoIdAcesso(String novoIdAcesso, Scanner scanner) {
+        boolean encontrado = false;
+        String idUsuarioEscolhido = String.valueOf(ControleDeAcesso.idUsuarioRecebidoPorHTTP);
+        String dispositivoEscolhido = ControleDeAcesso.dispositivoRecebidoPorHTTP;
+        GerenciarArquivo gerenciarArquivo = new GerenciarArquivo();
+
+        List<Usuario> listaDeUsuarios = Usuario.getListaUsuarios();
+
+
+        if (ControleDeAcesso.idUsuarioRecebidoPorHTTP == 0) {
+            for (Usuario usuario : listaDeUsuarios) {
+                System.out.println(usuario.getId() + " - " + usuario.getNome());
+            }
+            System.out.print("Digite o ID do usuário para associar ao novo idAcesso: ");
+            idUsuarioEscolhido = scanner.nextLine();
+            ControleDeAcesso.conexaoMQTT.publicarMensagem(ControleDeAcesso.topico, dispositivoEscolhido);
+            System.out.println("publicou a mensagem");
+        }
+
+        ControleDeAcesso.modoCadastrarIdAcesso = true;
+        System.out.println("saiu do publicar");
+
+        for(Usuario usuario: listaDeUsuarios){
+            System.out.println("Comparando id");
+            System.out.println("novoIdAcesso: "+novoIdAcesso);
+            if(usuario.getId() == Integer.parseInt(idUsuarioEscolhido)){
+                System.out.println("vai pegar o uuid");
+
+                usuario.setIdAcesso(UUID.fromString(novoIdAcesso));
+                System.out.println("Pegou o uuid");
+                System.out.println("id de acesso " + novoIdAcesso + " associado ao usuário " + usuario.getNome());
+                ControleDeAcesso.conexaoMQTT.publicarMensagem("cadastro/disp", "CadastroConcluido");
+                encontrado = true;
+                Usuario.inserirUsuariosNoArquivo(gerenciarArquivo.getArquivoBancoDeDados());
+                break;
+            }
+            System.out.println("Comparou");
+        }
+        // Se não encontrou o usuário, imprime uma mensagem
+        if (!encontrado) {
+            System.out.println("Usuário com id" + idUsuarioEscolhido + " não encontrado.");
+        }
     }
 
     public static Usuario buscarUsuarioPorId(long id) {
