@@ -65,7 +65,7 @@ public class RegistroDeAcesso {
         }
     }
 
-    // Método para exibir os registros de acesso de um usuário
+    // Método para mostrar os registros de acesso de um usuário
     public static void exibirAcesso(Scanner scanner) {
         StringBuilder tabelaAcesso = new StringBuilder();
 
