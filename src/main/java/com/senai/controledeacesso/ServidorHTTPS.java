@@ -202,7 +202,7 @@ public class ServidorHTTPS {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             exchange.getResponseHeaders().set("Content-Type", "application/json");
-            String jsonResponse = ControleDeAcesso.matrizRegistrosDeAcesso.length == 0
+            String jsonResponse = RegistroDeAcesso.getListaDeRegistroDeAcesso().isEmpty()
                     ? "[]"
                     : "[" +
                     RegistroDeAcesso.getListaDeRegistroDeAcesso().stream()
